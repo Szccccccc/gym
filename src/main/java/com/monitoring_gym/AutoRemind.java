@@ -47,7 +47,7 @@ public class AutoRemind {
     public static final String confirmBookUrl = "https://reservation.bupt.edu.cn/index.php/Wechat/Booking/confirm_booking";
     public static final String bookUrl = "https://reservation.bupt.edu.cn/index.php/Wechat/Register/register_show";
     public static final Map<String, String> siteName = Maps.newHashMap();
-    public static final String cookie = "PHPSESSID=8pe7ncvmp44dm9a2dvse6vueg3"; // 在这里copy爬来的cookie
+    public static final String cookie = "PHPSESSID=it1bg4q77s19347r2vmogktoo1"; // 在这里copy爬来的cookie
 
     static {
         siteName.put("5982",  "羽毛球场");
@@ -102,7 +102,7 @@ public class AutoRemind {
     public static void main(String[] args)
     {
         AutoRemind autoRemind = new AutoRemind();
-        autoRemind.parseData("5985", "20230228"); //不知道场地名称可以先调用这个
+        autoRemind.parseData("5982", "20230304"); //不知道场地名称可以先调用这个
     }
 
 
@@ -181,7 +181,7 @@ public class AutoRemind {
             Element siteNameDiv = document.getElementsByAttributeValue("roomId", site.getSiteId().substring(0, site.getSiteId().indexOf("_"))).get(0);
             site.setSiteName(siteNameDiv.text());
 
-           // System.out.println(site);
+           System.out.println(site);
             result.add(site);
         }
 
