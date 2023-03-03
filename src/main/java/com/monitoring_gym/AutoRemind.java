@@ -48,6 +48,7 @@ public class AutoRemind {
     public static final String bookUrl = "https://reservation.bupt.edu.cn/index.php/Wechat/Register/register_show";
     public static final Map<String, String> siteName = Maps.newHashMap();
     public static final String cookie = "PHPSESSID=it1bg4q77s19347r2vmogktoo1"; // 在这里copy爬来的cookie
+    public static final String cookie1 = "PHPSESSID=it1bg4q77s19347r2vmogktoo1"; // 在这里copy爬来的cookie
 
     static {
         siteName.put("5982",  "羽毛球场");
@@ -59,18 +60,29 @@ public class AutoRemind {
 
 
     @Scheduled(cron = "0 0 10 ? * *")
+    @Async
     public void remind()  {
         try {
-            book("5982", "15424_2022112912,15424_2022112913", "20221129");
+            book("5982", "15420_2023030411,15420_2023030412", "20230304", cookie);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Scheduled(cron = "0 0 10 ? * *")
+    @Async
+    public void remind1()  {
+        try {
+            book("5982", "15420_2023030411,15420_2023030412", "20230304", cookie1);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     @Scheduled(cron = "0 0 12 ? * *")
-    public void remind1(){
+    public void remind2(){
         try {
-            book("5985", "15415_2022112905", "20221129");
+            book("5985", "15415_2022112905", "20221129", cookie);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -102,7 +114,7 @@ public class AutoRemind {
     public static void main(String[] args)
     {
         AutoRemind autoRemind = new AutoRemind();
-        autoRemind.parseData("5982", "20230304"); //不知道场地名称可以先调用这个
+        autoRemind.parseData("5982", "20230304", cookie); //不知道场地名称可以先调用这个
     }
 
 
@@ -118,7 +130,7 @@ public class AutoRemind {
     public String getTargetSiteId(String areaID, List<String> times, String siteName)
     {
         String date = times.get(0).split(" ")[0];
-        List<Site> siteList = parseData(areaID, date);
+        List<Site> siteList = parseData(areaID, date, cookie);
         if(siteList.isEmpty())
             return "";
 
@@ -144,7 +156,7 @@ public class AutoRemind {
      * @param time 日期， 20221126
      * @return
      */
-    public List<Site> parseData(String areaId, String time)
+    public List<Site> parseData(String areaId, String time, String cookie)
     {
         ArrayList<Site> result = Lists.newArrayList();
 
@@ -211,7 +223,7 @@ public class AutoRemind {
         return sitesInTime;
     }
 
-    public void book(String areaId, String siteId,  String time) throws IOException {
+    public void book(String areaId, String siteId,  String time, String cookie) throws IOException {
         HttpHeaders headers = new HttpHeaders();
         headers.add("User-Agent","Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.5195.102 Safari/537.36 Language/zh wxwork/4.0.19 (MicroMessenger/6.2) WindowsWechat  MailPlugin_Electron WeMail embeddisk");
         headers.add("Cookie", cookie);
