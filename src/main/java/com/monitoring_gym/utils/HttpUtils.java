@@ -30,7 +30,7 @@ public class HttpUtils {
         return restTemplate;
     }
 
-    public static ResponseEntity<JSONObject> doPost(String url, MultiValueMap<String, String> params, HttpHeaders httpHeaders)
+    public static ResponseEntity<JSONObject> doPost(String url, MultiValueMap params, HttpHeaders httpHeaders)
     {
         final RestTemplate restTemplate = new RestTemplate();
         final HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();

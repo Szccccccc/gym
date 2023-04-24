@@ -1,17 +1,21 @@
 package com.monitoring_gym;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.monitoring_gym.DAO.Site;
 import com.monitoring_gym.utils.HttpUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
@@ -28,27 +32,29 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import lombok.extern.slf4j.Slf4j;
 
-
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
-
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
 @EnableScheduling
 @Async
 public class AutoRemind {
-//    public static final String host = "https://reservation.bupt.edu.cn";
-//    public static final String cookieUrl = "https://reservation.bupt.edu.cn/index.php/1600?l=zh-cn";
+
     public static final String getSiteUrl = "https://reservation.bupt.edu.cn/index.php/Wechat/Booking/get_one_day_one_area_state_table_html";
     public static final String confirmBookUrl = "https://reservation.bupt.edu.cn/index.php/Wechat/Booking/confirm_booking";
     public static final String bookUrl = "https://reservation.bupt.edu.cn/index.php/Wechat/Register/register_show";
+
     public static final Map<String, String> siteName = Maps.newHashMap();
-    public static final String cookie = "PHPSESSID=it1bg4q77s19347r2vmogktoo1"; // 在这里copy爬来的cookie
-    public static final String cookie1 = "PHPSESSID=it1bg4q77s19347r2vmogktoo1"; // 在这里copy爬来的cookie
+    public static final String cookie = "PHPSESSID=7jj8er0vo57dbds602d76456v0"; // 在这里copy爬来的cookie
+    public static final String cookie1 = "PHPSESSID=1s5q58qasid16u189trml82rr2"; // 在这里copy爬来的cookie
 
     static {
         siteName.put("5982",  "羽毛球场");
@@ -59,93 +65,81 @@ public class AutoRemind {
     }
 
 
-    @Scheduled(cron = "0 0 10 ? * *")
-    @Async
-    public void remind()  {
-        try {
-            book("5982", "15420_2023030411,15420_2023030412", "20230304", cookie);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Scheduled(cron = "0 0 10 ? * *")
-    @Async
-    public void remind1()  {
-        try {
-            book("5982", "15420_2023030411,15420_2023030412", "20230304", cookie1);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Scheduled(cron = "0 0 12 ? * *")
-    public void remind2(){
-        try {
-            book("5985", "15415_2022112905", "20221129", cookie);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-//    @Scheduled(fixedRate = 5000)
-//    public void remind2()
-//    {
+//    @Scheduled(cron = "0 0 10 ? * *")
+//    @Async
+//    public void bookForBadminton()  {
+//        System.out.println("开始预约");
 //        try {
-//            AutoRemind autoRemind = new AutoRemind();
-//            List<Site> list = autoRemind.parseData("5985", "20230228");
-//            for(Site site : list)
-//            {
-//                if(StringUtils.equals(site.getSiteId(), "15415_2023022815"))
-//                {
-//                    System.out.println(site);
-//                    if(!"已约满".equals(site.getStates())){
-//                        book("5985", "15415_2023022815", "20230228");
-//                    }
-//                }
-//            }
-//
+//            String result = book("5982", "15420_2023042212,15420_2023042213", "20230422", cookie);
+//            while(StringUtils.isNotBlank(result))
+//                result = book("5982", "15420_2023042212,15420_2023042213", "20230422", cookie);
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
 //    }
+//
+//    @Scheduled(cron = "0 0 12 ? * *")
+//    public void bookForGym(){
+//        try {
+//            book("5985", "15415_2022112905", "20221129", cookie);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
+//
+//    @Scheduled(fixedRate = 5000)
+//    @Async
+//    public void remindForBadminton()
+//    {
+//        remind("20230424", "5982", 15418, 15426,11, 15, cookie, "package_pay");
+//    }
+//
+    @Scheduled(fixedRate = 3000)
+    @Async
+    public void remindForGym() throws IOException {
+        remind("20230424", "5985", 15415, 15415,17, 19, cookie, "package_pay");
 
-
-    public static void main(String[] args)
-    {
-        AutoRemind autoRemind = new AutoRemind();
-        autoRemind.parseData("5982", "20230304", cookie); //不知道场地名称可以先调用这个
     }
 
+    public static void main(String[] args) throws Exception {
+        AutoRemind autoRemind = new AutoRemind();
+        System.out.println(autoRemind.parseData("5985", "20230424", cookie)); //不知道场地名称可以先调用这个
+//        autoRemind.book("5985", "15415_2023042519", "20230425", cookie, "package_pay");
+    }
 
-    /**
-     * @author: shenzhaocong
-     * @description: 根据场馆ID和日期获取场地ID
-     * @date: 2022/11/25 15:39
-     * @param areaID 场馆ID
-     * @param times 日期 想预约的场地时间，放到list里，格式是20211125 08:00-09:00
-     * @param siteName 场地名称 例如羽毛球场2号
-     * @return 返回指定的场地Id
-     */
-    public String getTargetSiteId(String areaID, List<String> times, String siteName)
+    public synchronized void remind(String time, String areaId, int startSiteId, int endSiteId, int startTimeId, int endTimeId, String cookie, String paymentType)
     {
-        String date = times.get(0).split(" ")[0];
-        List<Site> siteList = parseData(areaID, date, cookie);
-        if(siteList.isEmpty())
-            return "";
+        List<String> siteIds = Lists.newArrayList();
 
-        List<Site> siteInTime = filterSite(siteList, times, siteName);
-        if(siteInTime.isEmpty())
-            return "";
-
-        StringBuilder siteId = new StringBuilder();
-        for(Site site: siteInTime)
-        {
-            siteId.append(site.getSiteId());
-            siteId.append(",");
+        for(int i = startSiteId; i <= endSiteId; i++) {
+            for(int j = startTimeId; j <= endTimeId; j++) {
+                StringBuffer sb = new StringBuffer();
+                sb.append(i);
+                sb.append("_");
+                sb.append(time);
+                sb.append(j);
+                siteIds.add(sb.toString());
+            }
         }
-        siteId.deleteCharAt(siteId.length()-1);
-        return siteId.toString();
+
+        try {
+            AutoRemind autoRemind = new AutoRemind();
+            List<Site> list = autoRemind.parseData(areaId, time, cookie);
+            for(Site site : list)
+            {
+                if(siteIds.contains(site.getSiteId()))
+                {
+                    if(!"已约满".equals(site.getStates())){
+                        System.out.println(site);
+                        System.out.println(cookie);
+                        book(areaId, site.getSiteId(), time, cookie, paymentType);
+                    }
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -193,7 +187,7 @@ public class AutoRemind {
             Element siteNameDiv = document.getElementsByAttributeValue("roomId", site.getSiteId().substring(0, site.getSiteId().indexOf("_"))).get(0);
             site.setSiteName(siteNameDiv.text());
 
-           System.out.println(site);
+            System.out.println(site);
             result.add(site);
         }
 
@@ -201,45 +195,97 @@ public class AutoRemind {
         return result;
     }
 
-    /**
-     * siteList: 所有场次的信息
-     * time: 要需要的时间段, 只有乒乓球和羽毛球能一下约两个时间段，时间格式20221123 18:00-19:00
-     * siteNum: 几号场，可以先调用一次parseData查看目标场地名称
-     * */
-    public List<Site> filterSite(List<Site> siteList, List<String> time, String siteName)
-    {
-        List<Site> sitesInTime = Lists.newArrayList();
-        for(Site site: siteList)
-        {
-            if(siteName.equals(site.getSiteName()))
-            {
-                if(time.contains(site.getTime()))
-                {
-                    sitesInTime.add(site); // 将指定时间的指定场地名称加入list
-                    System.out.println("目标场地信息 ———— " + site);
-                }
-            }
+    public String request(String siteId, String areaId, String price) {
+        String loginUrl = "https://reservation.bupt.edu.cn/index.php/Wechat/User/user_is_login";
+        String devicesUrl = "https://reservation.bupt.edu.cn/index.php/API/Room/get_room_devices";
+        String softUrl = "https://reservation.bupt.edu.cn/index.php/API/Room/get_room_softs";
+        String balanceUrl = "https://reservation.bupt.edu.cn/index.php/Wechat/MixedPayment/get_balance_and_packages_of_one_user";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("User-Agent","Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.5195.102 Safari/537.36 Language/zh wxwork/4.0.19 (MicroMessenger/6.2) WindowsWechat  MailPlugin_Electron WeMail embeddisk");
+        headers.add("Cookie", cookie);
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> params =  new LinkedMultiValueMap<>(); // 参数
+
+        params.add("{\"is_need_login\":true,\"is_specified_page_login\":false}","");
+        ResponseEntity<JSONObject> response = HttpUtils.doPost(loginUrl, params, headers);
+        System.out.println(response.getBody());
+
+        String id = siteId.substring(0, siteId.indexOf("_"));
+        String timeId = siteId.substring(siteId.indexOf("_") + 1);
+
+        params.clear();
+        params.add("id", id);
+        response = HttpUtils.doPost(devicesUrl, params, headers);
+        System.out.println(response.getBody());
+
+        response = HttpUtils.doPost(softUrl, params, headers);
+        System.out.println(response.getBody());
+
+        params.clear();
+        params.add("room_id", id);
+        params.add("device_id", "0");
+        params.add("soft_id", "0");
+        params.add("time_id", timeId);
+        params.add("area_id", areaId);
+        params.add("card_id", "0");
+        params.add("card_name", "0");
+        params.add("card_type", "0");
+        params.add("card_discount", "0");
+        params.add("finall_price", price);
+        params.add("occupy_quota", "1");
+        response = HttpUtils.doPost(balanceUrl, params, headers);
+        JSONObject balance = response.getBody();
+        JSONArray packages = balance.getJSONArray("vip_packages");
+
+        if(packages != null && packages.size() > 0) {
+            JSONObject vip = packages.getJSONObject(0);
+            return vip.getString("vip_id");
         }
-        return sitesInTime;
+
+        return "";
+
     }
 
-    public void book(String areaId, String siteId,  String time, String cookie) throws IOException {
+    /**
+     * @author: shenzhaocong
+     * @date: 2023/4/24 15:57
+     * @param areaId 场馆id
+     * @param siteId 场地id
+     * @param time 要预约的时间
+     * @param cookie 体育馆cookie
+     * @param paymentType 支付方式 wechat_pay & package_pay
+     *                    wechat_pay 代表使用微信支付，约好以后要用微信支付
+     *                    package_pay 代表使用套餐，例如如果有健身房卡，可以直接用卡支付
+     * @return 预约结果
+     */
+    public String book(String areaId, String siteId,  String time, String cookie, String paymentType) throws IOException {
         HttpHeaders headers = new HttpHeaders();
         headers.add("User-Agent","Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.5195.102 Safari/537.36 Language/zh wxwork/4.0.19 (MicroMessenger/6.2) WindowsWechat  MailPlugin_Electron WeMail embeddisk");
         headers.add("Cookie", cookie);
 
-        String getUrl = confirmBookUrl + "?area_id=" + areaId + "&td_id=" + siteId + "&query_date=" + time + "&country_id=0";
-        ResponseEntity<String> confirmResponse = HttpUtils.doGet(getUrl, new LinkedMultiValueMap<String, String>(), headers); // 获取预约表单
-        String webContent = confirmResponse.getBody();
-        Document document = Jsoup.parse(webContent);
-        Elements elements = document.getElementsByAttributeValue("id", "form-sub");
-        Elements formElements = elements.get(0).getElementsByTag("input");
+        Elements elements;
+        String getUrl;
+        Document document;
+        do{
+            getUrl = confirmBookUrl + "?area_id=" + areaId + "&td_id=" + siteId + "&query_date=" + time + "&country_id=0";
+            ResponseEntity<String> confirmResponse = HttpUtils.doGet(getUrl, new LinkedMultiValueMap<String, String>(), headers); // 获取预约表单
+            String webContent = confirmResponse.getBody();
+            document = Jsoup.parse(webContent);
+            elements = document.getElementsByAttributeValue("id", "form-sub");
+        }
+        while(elements.size() < 1);
 
+        Elements formElements = elements.get(0).getElementsByTag("input");
         String boundary = "----WebKitFormBoundary" + RandomStringUtils.randomAlphanumeric(16);
         MultipartEntityBuilder builder = MultipartEntityBuilder.create()
-                .setMode(HttpMultipartMode.BROWSER_COMPATIBLE) // 设置浏览器模式
-                .setBoundary(boundary)
-                .setCharset(StandardCharsets.UTF_8);
+                .setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
+                .setBoundary(boundary);
+
+        ContentType contentType= ContentType.create("text/plain", "UTF-8");
+        String price = document.getElementsByAttributeValue("id", "no_card_price").attr("value");
+        String vipId = request(siteId, areaId, price);
 
         for(Element formData : formElements)
         {
@@ -247,22 +293,76 @@ public class AutoRemind {
             {
                 String key = formData.attr("id");
                 String value = formData.attr("value");
-                if(key.equals("total_amount"))
-                    value = document.getElementsByAttributeValue("id", "no_card_price").attr("value");
-                if(key.equals("mixed_payment_type"))
-                    value = "wechat_pay";
-                builder.addTextBody(key, value);
+
+                if(key.equals("total_amount")) {
+                    value = price;
+                }
+
+                if(key.equals("mixed_payment_type")) {
+                    if(paymentType.equals("package_type") && !vipId.equals("0"))
+                        value = paymentType;
+                    else
+                        value = "wechat_pay";
+                }
+
+
+                if(key.equals(("to_use_vip_id"))) {
+                    value = vipId;
+                }
+
+                StringBody stringBody=new StringBody(value, contentType);
+                builder.addPart(key, stringBody);
+//                System.out.println(key + ":" + value);
             }
         }
+
+
+
+        if(paymentType.equals("package_pay") && StringUtils.isNotBlank(vipId)) {
+            StringBody stringBody=new StringBody(vipId, contentType);
+            builder.addPart("to_use_vip_id", stringBody);
+
+            stringBody=new StringBody(paymentType, contentType);
+            builder.addPart("mixed_payment_type", stringBody);
+        } else {
+            StringBody stringBody=new StringBody("0", contentType);
+            builder.addPart("to_use_vip_id", stringBody);
+
+            stringBody=new StringBody("wechat_pay", contentType);
+            builder.addPart("mixed_payment_type", stringBody);
+        }
+
 
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpEntity multipart = builder.build();
         HttpPost httpPost = new HttpPost(bookUrl);
         httpPost.setEntity(multipart);
-        httpPost.setHeader("Cookie", cookie);
+
+        File file = new File("src/main/java/com/monitoring_gym/header.txt");
+        List<String> list = new ArrayList<>();
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file));) {
+            list = bufferedReader.lines().collect(Collectors.toList());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        for(String header : list) {
+            httpPost.setHeader(header.substring(0, header.indexOf(":")).trim(), header.substring(header.indexOf(":") + 1).trim());
+        }
+
+        httpPost.setHeader("Referer" , getUrl);
+        httpPost.setHeader("Cookie", cookie + "; think_language=zh-cn");
+        httpPost.setHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
+
         CloseableHttpResponse response = httpClient.execute(httpPost);
         HttpEntity responseEntity = response.getEntity();
         String sResponse= EntityUtils.toString(responseEntity, "UTF-8");
-        System.out.println("Post 返回结果"+sResponse);
+
+        if(StringUtils.isBlank(sResponse))
+            System.out.println("预约成功！");
+        else
+            System.out.println("Post 返回结果: \n" + sResponse);
+
+        return sResponse;
     }
 }
