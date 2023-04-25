@@ -53,7 +53,7 @@ public class AutoRemind {
     public static final String bookUrl = "https://reservation.bupt.edu.cn/index.php/Wechat/Register/register_show";
 
     public static final Map<String, String> siteName = Maps.newHashMap();
-    public static final String cookie = "PHPSESSID=7jj8er0vo57dbds602d76456v0"; // 在这里copy爬来的cookie
+    public static final String cookie = "PHPSESSID=dai96i6uekg5070d8tbq9dbe87"; // 在这里copy爬来的cookie
     public static final String cookie1 = "PHPSESSID=1s5q58qasid16u189trml82rr2"; // 在这里copy爬来的cookie
 
     static {
@@ -70,9 +70,9 @@ public class AutoRemind {
 //    public void bookForBadminton()  {
 //        System.out.println("开始预约");
 //        try {
-//            String result = book("5982", "15420_2023042212,15420_2023042213", "20230422", cookie);
+//            String result = book("5982", "15426_2023042610,15426_2023042611", "20230426", cookie, "wechat_pay");
 //            while(StringUtils.isNotBlank(result))
-//                result = book("5982", "15420_2023042212,15420_2023042213", "20230422", cookie);
+//                result = book("5982", "15426_2023042610,15426_2023042611", "20230426", cookie, "wechat_pay");
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
@@ -87,24 +87,25 @@ public class AutoRemind {
 //        }
 //    }
 //
-//    @Scheduled(fixedRate = 5000)
-//    @Async
-//    public void remindForBadminton()
-//    {
-//        remind("20230424", "5982", 15418, 15426,11, 15, cookie, "package_pay");
-//    }
-//
     @Scheduled(fixedRate = 3000)
     @Async
-    public void remindForGym() throws IOException {
-        remind("20230424", "5985", 15415, 15415,17, 19, cookie, "package_pay");
-
+    public void remindForBadminton()
+    {
+        remind("20230426", "5982", 15418, 15426,9, 12, cookie, "wechat_pay");
     }
+//
+//    @Scheduled(fixedRate = 3000)
+//    @Async
+//    public void remindForGym() throws IOException {
+//        remind("20230424", "5985", 15415, 15415,17, 19, cookie, "package_pay");
+//
+//    }
 
     public static void main(String[] args) throws Exception {
         AutoRemind autoRemind = new AutoRemind();
-        System.out.println(autoRemind.parseData("5985", "20230424", cookie)); //不知道场地名称可以先调用这个
-//        autoRemind.book("5985", "15415_2023042519", "20230425", cookie, "package_pay");
+        List<Site> list = autoRemind.parseData("5982", "20230426", cookie); //不知道场地名称可以先调用这个
+        list.forEach(System.out::println);
+//        autoRemind.book("5983", "15427_2023042503,15427_2023042504", "20230425", cookie, "wechat_pay");
     }
 
     public synchronized void remind(String time, String areaId, int startSiteId, int endSiteId, int startTimeId, int endTimeId, String cookie, String paymentType)
@@ -117,7 +118,7 @@ public class AutoRemind {
                 sb.append(i);
                 sb.append("_");
                 sb.append(time);
-                sb.append(j);
+                sb.append(j < 10 ? "0"+j : j);
                 siteIds.add(sb.toString());
             }
         }
@@ -129,6 +130,7 @@ public class AutoRemind {
             {
                 if(siteIds.contains(site.getSiteId()))
                 {
+//                    System.out.println(site);
                     if(!"已约满".equals(site.getStates())){
                         System.out.println(site);
                         System.out.println(cookie);
@@ -187,7 +189,7 @@ public class AutoRemind {
             Element siteNameDiv = document.getElementsByAttributeValue("roomId", site.getSiteId().substring(0, site.getSiteId().indexOf("_"))).get(0);
             site.setSiteName(siteNameDiv.text());
 
-            System.out.println(site);
+//            System.out.println(site);
             result.add(site);
         }
 
@@ -212,8 +214,23 @@ public class AutoRemind {
         ResponseEntity<JSONObject> response = HttpUtils.doPost(loginUrl, params, headers);
         System.out.println(response.getBody());
 
-        String id = siteId.substring(0, siteId.indexOf("_"));
-        String timeId = siteId.substring(siteId.indexOf("_") + 1);
+        String id = siteId.substring(0, siteId.indexOf("_"));;
+        String timeId;
+        if(siteId.contains(",")) {
+            StringBuffer sb = new StringBuffer();
+            String[] siteIds = siteId.split(",");
+            for(String site : siteIds) {
+                sb.append(site.substring(site.indexOf("_") + 1));
+                sb.append(" ");
+            }
+
+            timeId = sb.toString().trim();
+
+        } else {
+            timeId = siteId.substring(siteId.indexOf("_") + 1);
+        }
+
+
 
         params.clear();
         params.add("id", id);
@@ -236,7 +253,10 @@ public class AutoRemind {
         params.add("finall_price", price);
         params.add("occupy_quota", "1");
         response = HttpUtils.doPost(balanceUrl, params, headers);
+
         JSONObject balance = response.getBody();
+        System.out.println(balance);
+
         JSONArray packages = balance.getJSONArray("vip_packages");
 
         if(packages != null && packages.size() > 0) {
