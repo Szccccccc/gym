@@ -38,5 +38,5 @@ log/
 *.pid
 *.orig
 temp/
-/src/main/java/com/monitoring_gym/data.txt
+/src/main/java/com/monitoring_gym/other/data.txt
 /src/main/java/com/monitoring_gym/Test.java
