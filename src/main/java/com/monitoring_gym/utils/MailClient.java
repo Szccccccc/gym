@@ -32,7 +32,7 @@ public class MailClient {
             mailSender.send(helper.getMimeMessage());
             log.info("邮件发送成功");
         } catch (Exception e) {
-            log.info("发送邮件失败："+e.getMessage());
+            log.error("发送邮件失败："+e.getMessage());
         }
     }
 }
