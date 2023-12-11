@@ -30,6 +30,13 @@ public class HttpUtils {
         return restTemplate;
     }
 
+    public static String doJsonPost(String url, String json, HttpHeaders headers) {
+        HttpEntity<String> request = new HttpEntity<String>(json, headers);
+        RestTemplate restTemplate = new RestTemplate();
+
+        return restTemplate.postForObject(url, request, String.class);
+    }
+
     public static ResponseEntity<JSONObject> doPost(String url, MultiValueMap params, HttpHeaders httpHeaders)
     {
         final RestTemplate restTemplate = new RestTemplate();

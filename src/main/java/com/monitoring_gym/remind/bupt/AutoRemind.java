@@ -1,10 +1,11 @@
-package com.monitoring_gym;
+package com.monitoring_gym.remind.bupt;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.monitoring_gym.DAO.Site;
+import com.monitoring_gym.Application;
+import com.monitoring_gym.DAO.bupt.Site;
 import com.monitoring_gym.utils.HttpUtils;
 import com.monitoring_gym.utils.MailClient;
 import lombok.extern.slf4j.Slf4j;
@@ -53,7 +54,8 @@ public class AutoRemind {
     @Autowired
     MailClient mailClient;
 
-    public static final String remindEmail = "529540465@qq.com";
+    public static final String remindEmail1 = "1532886617@qq.com";
+    public static final String remindEmail2 = "529540465@qq.com";
 
     public static final String getSiteUrl = "https://reservation.bupt.edu.cn/index.php/Wechat/Booking/get_one_day_one_area_state_table_html";
     public static final String confirmBookUrl = "https://reservation.bupt.edu.cn/index.php/Wechat/Booking/confirm_booking";
@@ -61,8 +63,8 @@ public class AutoRemind {
     public static final String loginUrl = "https://reservation.bupt.edu.cn/index.php/Wechat/User/user_is_login";
 
     public static final Map<String, String> siteName = Maps.newHashMap();
-    public static final String cookie = "PHPSESSID=vn4ojven226m2orm52aisqtk21"; // 在这里copy爬来的cookie
-    public static final String cookie1 = "PHPSESSID=pngqku5e301dg8bbhqft04gsv4"; // 在这里copy爬来的cookie
+    public static final String cookie = "PHPSESSID=a79qp8nsrgf5aklsrk1d64q8u3"; // 在这里copy爬来的cookie
+    public static final String cookie1 = "PHPSESSID=3cc92733joisji2n1snp11a3m7"; // 在这里copy爬来的cookie
 
     static {
         siteName.put("5982",  "羽毛球场");
@@ -76,10 +78,10 @@ public class AutoRemind {
     @Scheduled(cron = "0 0 10 ? * *")
     @Async
     public void bookForBadminton()  {
-        String time = "20230606";
-//        String siteId1 = "15424_"+time+"14";
-//        String siteId2 = "15424_"+time+"15";
-        String siteId = "15424_"+time+"14,15424_"+time+"15";
+        String time = "20231207";
+        String siteId1 = "15426_"+time+"14";
+        String siteId2 = "15426_"+time+"15";
+        String siteId = "15426_"+time+"14,15426_"+time+"15";
 
 //        System.out.println("查询场地");
 //        parseData("5982", time, cookie);
@@ -87,9 +89,13 @@ public class AutoRemind {
 
         try {
             log.info("开始预约");
-            book("5982", siteId, time, cookie, "wechat_pay");
-//            book("5982", siteId1, time, cookie, "wechat_pay");
-//            book("5982", siteId2, time, cookie, "wechat_pay");
+            String res = book("5982", siteId, time, cookie, "wechat_pay");
+
+            if(!StringUtils.isBlank(res)) {
+                book("5982", siteId1, time, cookie, "wechat_pay");
+                book("5982", siteId2, time, cookie, "wechat_pay");
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -105,32 +111,33 @@ public class AutoRemind {
 //        }
 //    }
 
-    @Scheduled(fixedRate = 3000)
-    @Async
-    public void remindForBadminton()
-    {
-        remind("20230606", "5982", 15418, 15426,11, 15, cookie, "wechat_pay");
-        remind("20230606", "5982", 15418, 15426,11, 15, cookie, "wechat_pay");
-    }
-
-
+//    @Scheduled(fixedRate = 3000)
+//    @Async
+//    public void remindForBadminton()
+//    {
+////        remind("20231126", "5991", 15449, 15453, 9, 10, cookie, "wechat_pay", remindEmail2);
+//        remind("20231205", "5982", 15418, 15426, 13, 15, cookie, "wechat_pay", remindEmail2);
+//    }
 
 //    @Scheduled(fixedRate = 3000)
 //    @Async
 //    public void remindForGym() throws IOException {
-//        remind("20230601", "5985", 15415, 15415,19, 19, cookie, "package_pay");
+//        remind("20231204", "5985", 15415, 15415,17, 17, cookie, "package_pay", remindEmail2);
 //    }
-//
+
+
+
 
     public static void main(String[] args) throws Exception {
         AutoRemind autoRemind = new AutoRemind();
-        List<Site> list = autoRemind.parseData("5982", "20230606", cookie); //不知道场地名称可以先调用这个
+        List<Site> list = autoRemind.parseData("5982", "20231207", cookie); //不知道场地名称可以先调用这个
         autoRemind.isLogin();
         list.forEach(System.out::println);
-//        autoRemind.book("5985", "15415_2023060119", "20230601", cookie, "wechat_pay");
+//        autoRemind.book("5983", "15434_2023112014", "20231120", cookie, "wechat_pay");
     }
 
-    public synchronized void remind(String time, String areaId, int startSiteId, int endSiteId, int startTimeId, int endTimeId, String cookie, String paymentType)
+    public synchronized void remind(String time, String areaId, int startSiteId, int endSiteId,
+                                    int startTimeId, int endTimeId, String cookie, String paymentType, String email)
     {
         List<String> siteIds = Lists.newArrayList();
 
@@ -152,7 +159,7 @@ public class AutoRemind {
             {
                 if(siteIds.contains(site.getSiteId()))
                 {
-//                    System.out.println(site);
+//                     System.out.println(site);
                     if(!"已约满".equals(site.getStates())){
                         log.info(site.toString());
                         log.info(cookie);
@@ -160,7 +167,7 @@ public class AutoRemind {
                         String res = book(areaId, site.getSiteId(), time, cookie, paymentType);
 
                         if(StringUtils.isBlank(res)) {
-                            mailClient.sendMail(remindEmail, "提醒："+ siteName.get(areaId) + "捡漏预约成功", "如果是微信支付的话尽快去付款嗷");
+                            mailClient.sendMail(email, "提醒："+ siteName.get(areaId) + "捡漏预约成功", "如果是微信支付的话尽快去付款嗷");
                         }
 
                     }
@@ -318,7 +325,6 @@ public class AutoRemind {
      *                    package_pay 代表使用套餐，例如如果有健身房卡，可以直接用卡支付
      * @return 预约结果
      */
-    @Async
     public String book(String areaId, String siteId,  String time, String cookie, String paymentType) throws IOException {
         HttpHeaders headers = new HttpHeaders();
         headers.add("User-Agent","Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.5195.102 Safari/537.36 Language/zh wxwork/4.0.19 (MicroMessenger/6.2) WindowsWechat  MailPlugin_Electron WeMail embeddisk");
@@ -336,6 +342,7 @@ public class AutoRemind {
         }
         while(elements.size() < 1);
 
+        log.info("场地信息表单获取成功");
         Elements formElements = elements.get(0).getElementsByTag("input");
         String boundary = "----WebKitFormBoundary" + RandomStringUtils.randomAlphanumeric(16);
         MultipartEntityBuilder builder = MultipartEntityBuilder.create()

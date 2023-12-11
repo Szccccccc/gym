@@ -1,4 +1,4 @@
-package com.monitoring_gym.DAO;
+package com.monitoring_gym.DAO.bupt;
 
 import lombok.Data;
 

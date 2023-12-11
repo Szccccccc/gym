@@ -31,7 +31,7 @@ public class Test {
     static {
         headers.add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 Edg/111.0.1661.44");
         headers.add("Cookie", "SINAGLOBAL=6654267848342.768.1626610659247; XSRF-TOKEN=WVbR4rT0RCV3wWtmeeXaTaim; PC_TOKEN=b7bb7f19d9; login_sid_t=fcd79b9cbb8a1d428ea567b0ca18a0b1; cross_origin_proto=SSL; _s_tentry=passport.weibo.com; UOR=,,login.sina.com.cn; Apache=4044310458691.778.1679240417311; ULV=1679240417313:10:1:1:4044310458691.778.1679240417311:1669093808706; SCF=AlQp7T7kFw1HfsLvBLAklUFo_NiCb5809GmgXLTU6j3i-3b0k-Reyv8TO7JHuG7Id1oq8Gmgbbql16cguxzqx00.; SUB=_2A25JE1yjDeRhGeNI7loU-SrNzDmIHXVqaclrrDV8PUNbmtANLUujkW9NSETX5h6wHv1lBYq7u8DZ8GylnxuZDpAO; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9WF9g1ncxqolnXX9zVrguVnP5JpX5KzhUgL.Fo-cSKnf1KBpS0-2dJLoI7_8wsSydsLbUPiKgBtt; ALF=1710776435; SSOLoginState=1679240435; WBPSESS=aOlYKBgsbLBvVZ2Aj8Lt4jM601Yt0whdRk2uHun_xr9DiLEciVft50XkUOAbHp2Ioc4u-vcFCZ_6m5Vhrqzwyb5mlmb0UAkM0tQ7DL8MwyEkFjdT_UTYzIlatx4xVjmO2L5GUkBHWGQaBOBLLuKujg==; UPSTREAM-V-WEIBO-COM=b09171a17b2b5a470c42e2f713edace0");
-        headers.add("X-XSRF-TOKEN", "WVbR4rT0RCV3wWtmeeXaTaim");
+        headers.add("X-XSRF-TOKEN", "30vgurRnNjMNXHY9CELGnZQ_");
         headers.setContentType(MediaType.APPLICATION_JSON);
     }
 
